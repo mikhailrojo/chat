@@ -3,6 +3,7 @@ var sock = sockjs.createServer();
 
 var arrayOfPeople = [];
 var historyArr = [];
+var onlineUsers = [];
 
 sock.on("connection", (conn)=>{
 
@@ -13,19 +14,21 @@ sock.on("connection", (conn)=>{
     if(newMsg.author){
       msg = newMsg.time + " " + newMsg.author + " : " + newMsg.msg;
       historyArr.push(msg);
-      var objToSend = JSON.stringify({text: msg});
+      var objToSend = JSON.stringify({text: msg, user: newMsg.author, onlineUsers: onlineUsers});
       arrayOfPeople.forEach((user)=>{
         user.write(objToSend);
       });
     } else if(newMsg.intro){
       msg = "К чату присоединился: " + newMsg.intro + " :)";
-      historyArr.push(msg);
+      onlineUsers.push(newMsg.intro);
       arrayOfPeople.forEach((user)=>{
         if(user === conn){
           user.specialName = newMsg.intro;
-          user.write(JSON.stringify({history: historyArr}));
+          user.write(JSON.stringify({history: historyArr, onlineUsers: onlineUsers}));
         }
+        user.write(JSON.stringify({text: msg, onlineUsers: onlineUsers}));
       });
+      historyArr.push(msg);
     }
   });
   conn.on("close", ()=>{
@@ -33,6 +36,7 @@ sock.on("connection", (conn)=>{
     arrayOfPeople.forEach((i)=>{
       if(i === conn){
         whoLeft = i.specialName || "Чат-бот";
+        onlineUsers.splice(onlineUsers.indexOf(i.specialName), 1);
       }
     });
     arrayOfPeople  = arrayOfPeople.filter((i)=>{
@@ -41,7 +45,7 @@ sock.on("connection", (conn)=>{
         return false;
       } else {
         historyArr.push(msg);
-        i.write(JSON.stringify({text: msg}));
+        i.write(JSON.stringify({text: msg, onlineUsers: onlineUsers}));
         return true;
       }
     });

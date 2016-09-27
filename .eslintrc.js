@@ -5,7 +5,8 @@ module.exports = {
       "before": true,
       "$": true,
       "SockJS": true,
-      "http": true
+      "http": true,
+      "after": true
     },
     "env": {
         "browser": true,
