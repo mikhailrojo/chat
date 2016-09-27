@@ -13,7 +13,6 @@
   sock.onmessage = function(e){
     var elem;
     var received = JSON.parse(e.data);
-    console.log(received);
     if(received.history){
       appendHistory(received.history);
     } else {
